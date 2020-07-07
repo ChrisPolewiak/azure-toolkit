@@ -24,7 +24,7 @@ $SubscriptionID = $(Get-AzureRmContext).Subscription.Id
 # Define Report File
 $ReportFile = $( $(Get-CloudDrive).MountPoint + '\AzureResourcesExport-' + $(Get-Date -format 'yyyy-MM-dd-HHmmss') + '.csv' )
 
-Class AzureResource♀
+Class AzureResource
 {
 	[string]$Subscription
 	[string]$ResourceType
