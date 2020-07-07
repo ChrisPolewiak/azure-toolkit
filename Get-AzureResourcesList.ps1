@@ -15,7 +15,6 @@ Change Log
 V1.00, 15/05/2018 - Initial version
 V1.01, 28/07/2018 - Repoting SKU parameters
 V1.02, 07/07/2020 - Fix reporting SKU, Add reporting VM Disk size
-
 #>
 
 $SubscriptionID = ''
