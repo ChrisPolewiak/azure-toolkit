@@ -4,7 +4,8 @@ Get-AzureResourceList
 Short manual how to grab Resource Data from Subscription - online version
 
 1. Open PowerShell for your subscription.
-   Easiest way is to open https://shell.azure.com website. 
+   Easiest way is to open https://shell.azure.com website.
+   
    **Remember to choose PowerShell version instead of Cli**
 
 2. Go to Home Directory
