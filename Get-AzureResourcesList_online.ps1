@@ -44,7 +44,7 @@ Class AzureResource
 	[string]$Subscription
 	[string]$ResourceType
 	[string]$MoveToResourceGroup
-	[string]$MoveToSubscrition
+	[string]$MoveToSubscription
 	[string]$ResourceGroup
 	[string]$Location
 	[string]$Name
@@ -62,7 +62,7 @@ Foreach( $ResourceItem in $AzureResources)
     $reportItem = New-Object AzureResource
     $reportItem.Subscription = $SubscriptionID
     $reportItem.MoveToResourceGroup = $ResourceCapabilitiesData[ $ResourceItem.ResourceType ].MoveToResourceGroup
-    $reportItem.MoveToSubscrition = $ResourceCapabilitiesData[ $ResourceItem.ResourceType ].MoveToSubscription
+    $reportItem.MoveToSubscription = $ResourceCapabilitiesData[ $ResourceItem.ResourceType ].MoveToSubscription
     $reportItem.ResourceType = $ResourceItem.ResourceType
     $reportItem.ResourceGroup = $ResourceItem.ResourceGroupName
     $reportItem.Location = $ResourceItem.Location
