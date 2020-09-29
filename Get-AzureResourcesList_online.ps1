@@ -11,14 +11,14 @@ Run using Azure PowerShell online
 .NOTES
 Written By: Chris Polewiak
 Website:	http://blog.polewiak.pl
-Azure capabilites to move sourced from Tom FitzMacken (thanks)
+Verification of the possibility of relocation based on the script from Tom FitzMacken (thanks)
 https://github.com/tfitzmac/resource-capabilities/blob/master/move-support-resources.csv
 
 Change Log
 V1.00, 15/05/2018 - Initial version
 V1.01, 28/07/2018 - Repoting SKU parameters
 V1.02, 07/07/2020 - Fix reporting SKU, Add reporting VM Disk size
-V1.03, 29/09/2020 - Add taging if resource is capable to move to different resource group or a subscription
+V1.03, 29/09/2020 - Tag added whether the resource can be moved to different resource group or a subscription
 #>
 
 $SubscriptionID = $(Get-AzureRmContext).Subscription.Id
