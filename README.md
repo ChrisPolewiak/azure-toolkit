@@ -6,7 +6,7 @@ Report list of all resources with SKU or VM Size
 
 [manual](https://github.com/ChrisPolewiak/azure-toolkit/blob/master/AzureResourcesList.md#get-azureresourcelist)
 
-## Azure Disk Sizes ##
+## Azure VM Sizes ##
 Excel sheet to calculate amount and size of disks for Virtual Machine
 
 ## Azure Disk Sizes ##
