@@ -1,4 +1,4 @@
-﻿<#
+<#
 
 .SYNOPSIS
 Get-AzureResourceList.ps1 - Report list of all resources with SKU or VM Size
@@ -22,16 +22,16 @@ V1.03, 29/09/2020 - Tag added whether the resource can be moved to different res
 
 $SubscriptionID = ''
 
-if ( ! $(Get-AzureRmContext) )
+if ( ! $(Get-AzContext) )
 {
     # Login to Azure Teenant
-    Login-AzureRmAccount
+    Login-AzAccount
 
     # Select Subscription
-    Select-AzureRmSubscription -SubscriptionId $SubscriptionID -TenantId $Subscription.TenantId
+    Select-AzSubscription -Subscription $SubscriptionID -Tenant $Subscription.TenantId
 }
 
-$SubscriptionID = $(Get-AzureRmContext).Subscription.Id
+$SubscriptionID = $(Get-AzContext).Subscription.Id
 
 # Resource Move Capabilities
 Write-Output '- Fetching Resource Move Capabilities Data'
@@ -66,7 +66,7 @@ Class AzureResource
 
 $report = @()
 Write-Output '- Get Azure Resources List'
-$AzureResources = Get-AzureRmResource
+$AzureResources = Get-AzResource
 Foreach( $ResourceItem in $AzureResources)
 {
     $reportItem = New-Object AzureResource
@@ -86,7 +86,7 @@ Foreach( $ResourceItem in $AzureResources)
 
     # Managed Disk Size
     if ( $ResourceItem.ResourceType -eq 'Microsoft.Compute/disks' ) {
-        $reportDisk = Get-AzureRmDisk -ResourceGroupName $ResourceItem.ResourceGroupName -DiskName $ResourceItem.Name
+        $reportDisk = Get-AzDisk -ResourceGroupName $ResourceItem.ResourceGroupName -DiskName $ResourceItem.Name
         $reportItem.DiskSize = $reportDisk.DiskSizeGB
     }
 
@@ -101,3 +101,4 @@ $report | ConvertTo-Csv -NoTypeInformation | Out-File $ReportFile
 
 Write-Output $('- Your report is completed' )
 Write-Output $('         File Name: ' + $ReportFile )
+

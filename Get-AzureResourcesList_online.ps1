@@ -1,4 +1,4 @@
-﻿<#
+<#
 
 .SYNOPSIS
 Get-AzureResourceList_online.ps1 - Report list of all resources with SKU or VM Size
@@ -21,7 +21,7 @@ V1.02, 07/07/2020 - Fix reporting SKU, Add reporting VM Disk size
 V1.03, 29/09/2020 - Tag added whether the resource can be moved to different resource group or a subscription
 #>
 
-$SubscriptionID = $(Get-AzureRmContext).Subscription.Id
+$SubscriptionID = $(Get-AzContext).Subscription.Id
 
 # Resource Move Capabilities
 Write-Output '- Fetching Resource Move Capabilities Data'
@@ -56,7 +56,7 @@ Class AzureResource
 
 $report = @()
 Write-Output '- Get Azure Resources List'
-$AzureResources = Get-AzureRmResource
+$AzureResources = Get-AzResource
 Foreach( $ResourceItem in $AzureResources)
 {
     $reportItem = New-Object AzureResource
@@ -76,7 +76,7 @@ Foreach( $ResourceItem in $AzureResources)
 
     # Managed Disk Size
     if ( $ResourceItem.ResourceType -eq 'Microsoft.Compute/disks' ) {
-        $reportDisk = Get-AzureRmDisk -ResourceGroupName $ResourceItem.ResourceGroupName -DiskName $ResourceItem.Name
+        $reportDisk = Get-AzDisk -ResourceGroupName $ResourceItem.ResourceGroupName -DiskName $ResourceItem.Name
         $reportItem.DiskSize = $reportDisk.DiskSizeGB
     }
 
@@ -93,3 +93,4 @@ Write-Output $('- Your report is completed' )
 Write-Output $('   Storage Account: ' + $(Get-CloudDrive).Name )
 Write-Output $('    FileShare Name: ' + $(Get-CloudDrive).FileShareName )
 Write-Output $('         File Name: ' + $ReportFileName )
+
