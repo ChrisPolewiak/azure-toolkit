@@ -19,6 +19,7 @@ V1.00, 15/05/2018 - Initial version
 V1.01, 28/07/2018 - Repoting SKU parameters
 V1.02, 07/07/2020 - Fix reporting SKU, Add reporting VM Disk size
 V1.03, 29/09/2020 - Tag added whether the resource can be moved to different resource group or a subscription
+V1.04, 07/02/2022 - Add additional functions to get SKU sizes from resources
 #>
 
 $SubscriptionID = $(Get-AzContext).Subscription.Id
@@ -74,10 +75,33 @@ Foreach( $ResourceItem in $AzureResources)
         $reportItem.SkuCapacity = $($ResourceItem.Sku).Capacity
     }
 
-    # Managed Disk Size
-    if ( $ResourceItem.ResourceType -eq 'Microsoft.Compute/disks' ) {
-        $reportDisk = Get-AzDisk -ResourceGroupName $ResourceItem.ResourceGroupName -DiskName $ResourceItem.Name
-        $reportItem.DiskSize = $reportDisk.DiskSizeGB
+    # Get additional SKU Data
+    switch( $ResourceItem.ResourceType )
+    {
+        'Microsoft.Automation/automationAccounts' {
+            $resourceData = Get-AzAutomationAccount -WarningAction SilentlyContinue -ResourceGroupName $ResourceItem.ResourceGroupName -Name $ResourceItem.Name
+            $reportItem.SkuName = $resourceData.Plan
+        }
+        'Microsoft.Logic/workflows' {
+            $resourceData = Get-AzLogicApp -WarningAction SilentlyContinue -ResourceGroupName $ResourceItem.ResourceGroupName -Name $ResourceItem.Name
+            $reportItem.SkuName = $resourceData.PlanType
+        }
+        'Microsoft.Compute/disks' {
+            $resourceData = Get-AzDisk -WarningAction SilentlyContinue -ResourceGroupName $ResourceItem.ResourceGroupName -DiskName $ResourceItem.Name
+            $reportItem.DiskSize = $resourceData.DiskSizeGB
+        }
+        'Microsoft.KeyVault/vaults' {
+            $resourceData = Get-AzKeyVault -WarningAction SilentlyContinue -ResourceGroupName $ResourceItem.ResourceGroupName -VaultName $ResourceItem.Name
+            $reportItem.SkuName = $resourceData.SKU
+        }
+        'Microsoft.Compute/virtualMachines' {
+            $resourceData = Get-AzVM -WarningAction SilentlyContinue -ResourceGroupName $ResourceItem.ResourceGroupName -Name $ResourceItem.Name
+            $reportItem.SkuName = $resourceData.HardwareProfile.VmSize
+        }
+        'Microsoft.SqlVirtualMachine/SqlVirtualMachines') {
+            $resourceData = Get-AzVM -WarningAction SilentlyContinue -ResourceGroupName $ResourceItem.ResourceGroupName -Name $ResourceItem.Name
+            $reportItem.SkuName = $resourceData.HardwareProfile.VmSize
+        }
     }
 
     $reportItem.ResourceId = $ResourceItem.ResourceId
