@@ -98,7 +98,7 @@ Foreach( $ResourceItem in $AzureResources)
             $resourceData = Get-AzVM -WarningAction SilentlyContinue -ResourceGroupName $ResourceItem.ResourceGroupName -Name $ResourceItem.Name
             $reportItem.SkuName = $resourceData.HardwareProfile.VmSize
         }
-        'Microsoft.SqlVirtualMachine/SqlVirtualMachines') {
+        'Microsoft.SqlVirtualMachine/SqlVirtualMachines' {
             $resourceData = Get-AzVM -WarningAction SilentlyContinue -ResourceGroupName $ResourceItem.ResourceGroupName -Name $ResourceItem.Name
             $reportItem.SkuName = $resourceData.HardwareProfile.VmSize
         }
