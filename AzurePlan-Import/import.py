@@ -1,3 +1,12 @@
+# Import, extract and calculate billing in AzurePlan subscriptions from Excel files
+# 
+# Written By: Chris Polewiak
+# Website:	http://blog.polewiak.pl
+
+# Change Log
+# V1.00, 15/07/2022 - Initial public version
+
+
 import pandas as pd
 import json
 import sys
