@@ -7,7 +7,7 @@ Export Azure Frontdoor Custom Policy, generate a script for import
 ## Get-AzureResourceList ##
 Report list of all resources with SKU or VM Size
 
-[manual](https://github.com/ChrisPolewiak/azure-toolkit/blob/master/Get-AzureResources/AzureResourcesList.md#get-azureresourcelist)
+[manual](https://github.com/ChrisPolewiak/azure-toolkit/blob/master/Get-AzureResources/README.md#get-azureresourcelist)
 
 ## Azure VM Sizes ##
 Excel sheet to calculate amount and size of disks for Virtual Machine
