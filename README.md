@@ -1,6 +1,9 @@
 # azure-toolkit
 Azure Toolkit
 
+## Export-AzureFrontDoorCustomPolicy.ps1 ##
+Export Azure Frontdoor Custom Policy, generate a script for import
+
 ## Get-AzureResourceList ##
 Report list of all resources with SKU or VM Size
 
