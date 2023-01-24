@@ -17,7 +17,7 @@ cd $HOME_DIR
 3. Invoke download script from github and save it locally
 
 ```powershell
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/ChrisPolewiak/azure-toolkit/Get-AzureResources/master/Get-AzureResourcesList_online.ps1 -OutFile 'Get-AzureResourceList_online.ps1'
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/ChrisPolewiak/azure-toolkit/master/Get-AzureResources/Get-AzureResourcesList_online.ps1 -OutFile 'Get-AzureResourceList_online.ps1'
 ```
 
 4. Run script
