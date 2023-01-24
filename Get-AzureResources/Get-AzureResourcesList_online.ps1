@@ -20,7 +20,7 @@ V1.01, 28/07/2018 - Repoting SKU parameters
 V1.02, 07/07/2020 - Fix reporting SKU, Add reporting VM Disk size
 V1.03, 29/09/2020 - Tag added whether the resource can be moved to different resource group or a subscription
 V1.04, 07/02/2022 - Add additional functions to get SKU sizes from resources
-V1.05, 24/01/2023 - Update report with capabilites to move between regions
+V1.05, 24/01/2023 - Update of the report on the compatibility of moving between regions
 #>
 
 $SubscriptionID = $(Get-AzContext).Subscription.Id
