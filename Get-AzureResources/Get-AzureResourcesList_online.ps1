@@ -20,23 +20,43 @@ V1.01, 28/07/2018 - Repoting SKU parameters
 V1.02, 07/07/2020 - Fix reporting SKU, Add reporting VM Disk size
 V1.03, 29/09/2020 - Tag added whether the resource can be moved to different resource group or a subscription
 V1.04, 07/02/2022 - Add additional functions to get SKU sizes from resources
+V1.05, 24/01/2023 - Update of the report on the compatibility of moving between regions
 #>
 
 $SubscriptionID = $(Get-AzContext).Subscription.Id
 
-# Resource Move Capabilities
-Write-Output '- Fetching Resource Move Capabilities Data'
+# Import Resource Move to Resource Group and Subscription Capabilities from GitHub
+Write-Output '- Fetching Resource Move Capabilities Data between RG and Subscription'
 $ResourceCapabilities = ConvertFrom-Csv $(Invoke-WebRequest "https://raw.githubusercontent.com/tfitzmac/resource-capabilities/master/move-support-resources.csv")
 $ResourceCapabilitiesData = @{}
-Foreach( $Resource in $ResourceCapabilities)
+Foreach( $Resource in $ResourceCapabilities )
 {
+    # Create an List of resources
     $ResourceCapabilitiesData.add( $Resource.Resource, @{
         'MoveToResourceGroup' = $Resource.'Move Resource Group'
         'MoveToSubscription' = $Resource.'Move Subscription'
     })
 }
+# Import Resource Move to Region Capabilities from GitHub
+Write-Output '- Fetching Resource Move Capabilities Data between Regions'
+$ResourceCapabilities = ConvertFrom-Csv $(Invoke-WebRequest "https://raw.githubusercontent.com/tfitzmac/resource-capabilities/master/move-support-resources-with-regions.csv")
 
-# Define Report File
+Foreach( $Resource in $ResourceCapabilities)
+{
+    # Update an List of resources
+    if ( $ResourceCapabilitiesData[ $Resource.Resource ] -eq $null )
+    {
+        $ResourceCapabilitiesData.add( $Resource.Resource, @{
+            'MoveToRegion' = $Resource.'Move Region'
+        })
+    }
+    else
+    {
+        $ResourceCapabilitiesData[ $Resource.Resource ].MoveToRegion = $Resource.'Move Region'
+    }
+}
+
+# Prepare Report File location
 $ReportFileName = 'AzureResourcesExport-' + $(Get-Date -format 'yyyy-MM-dd-HHmmss') + '.csv';
 $ReportFile = $( $(Get-CloudDrive).MountPoint + '\' + $ReportFileName )
 
@@ -46,6 +66,7 @@ Class AzureResource
 	[string]$ResourceType
 	[string]$MoveToResourceGroup
 	[string]$MoveToSubscription
+	[string]$MoveToRegion
 	[string]$ResourceGroup
 	[string]$Location
 	[string]$Name
@@ -64,6 +85,7 @@ Foreach( $ResourceItem in $AzureResources)
     $reportItem.Subscription = $SubscriptionID
     $reportItem.MoveToResourceGroup = $ResourceCapabilitiesData[ $ResourceItem.ResourceType ].MoveToResourceGroup
     $reportItem.MoveToSubscription = $ResourceCapabilitiesData[ $ResourceItem.ResourceType ].MoveToSubscription
+    $reportItem.MoveToRegion = $ResourceCapabilitiesData[ $ResourceItem.ResourceType ].MoveToRegion
     $reportItem.ResourceType = $ResourceItem.ResourceType
     $reportItem.ResourceGroup = $ResourceItem.ResourceGroupName
     $reportItem.Location = $ResourceItem.Location
@@ -117,4 +139,3 @@ Write-Output $('- Your report is completed' )
 Write-Output $('   Storage Account: ' + $(Get-CloudDrive).Name )
 Write-Output $('    FileShare Name: ' + $(Get-CloudDrive).FileShareName )
 Write-Output $('         File Name: ' + $ReportFileName )
-
