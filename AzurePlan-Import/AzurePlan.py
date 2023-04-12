@@ -71,3 +71,18 @@ def ReportTXT( billing ):
     print("------------------------------------------------------------")
     print(report)
     print("------------------------------------------------------------")
+
+# Create HTML Report
+def ReportHTML( billing ):
+    report = '<html><head><title>Azure Plan usage for period ' + billing['meta']['StartDate'] + ' - ' + billing['meta']['EndDate'] + '</title></head><body>'
+    report += '<h1>Azure Plan usage for period ' + billing['meta']['StartDate'] + ' - ' + billing['meta']['EndDate'] + '</h1>'
+    for CustomerId in billing['data']:
+        report += '<h2>Customer Name: ' + str(billing['data'][CustomerId]['CustomerName']) + '</h2>'
+        report += '<p>Tenant id: ' + str(CustomerId) + '</p>'
+        report += '<p>Domain name: ' + str(billing['data'][CustomerId]['CustomerDomainName']) + '</p>'
+        report += '<p>Customer cost: ' + str( '{:.2f}'.format( billing['data'][CustomerId]['CustomerCost'] )) + ' EUR</p>'
+        report += '<p>Partner cost: ' + str( '{:.2f}'.format( billing['data'][CustomerId]['PartnerCost'] )) + ' EUR</p>'
+    report += '</body></html>'
+    print("------------------------------------------------------------")
+    print(report)
+    print("------------------------------------------------------------")
