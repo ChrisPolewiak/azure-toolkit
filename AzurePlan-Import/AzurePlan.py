@@ -2,64 +2,78 @@ import pandas as pd
 import json
 import re
 import csv
-from datetime import date, timedelta
+import locale
+import datetime
+from datetime import date, timedelta, datetime
 import warnings
 warnings.simplefilter("ignore")
+locale.setlocale(locale.LC_ALL, '')
+
 
 # Import data
 def Import( filepath ):
-    if (filepath.endswith('.xlsx') or filepath.endswith('.xls') ):
-        report = ImportFromExcel( filepath )
-    elif (filepath.endswith('.csv') ):
+    if (filepath.endswith('.csv') ):
         report = ImportFromCSV( filepath )
     return report
 
-# Import data from Excel
-def ImportFromExcel( filepath ):
-    report = []
-    data = pd.read_excel (filepath, engine="openpyxl")
-    df = pd.DataFrame(data)
-    data_dict = df.to_dict('records')
-    for line in data_dict:
-        report.append(line);
-    return report
 
 # Import data from CSV
 def ImportFromCSV( filepath ):
     report = []
-    with open(filepath, newline='') as csvfile:
+    with open(filepath, 'r', newline='') as csvfile:
         reader = csv.DictReader(csvfile, delimiter=';')
         for line in reader:
-            report.append(line);
+            if line == '\r\n' or line == '\n' or line == '':
+                continue
+            report.append(line)
     return report
+
 
 # Calculate billing data
 def Calculate( report ):
-    billing={'meta':{'StartDate':''}, 'data':{}}
+    billing={'meta':{'StartDate':'', 'EndDate':''}, 'data':{}}
     for line in report:
+
         # Set Report Dates
         if billing['meta']['StartDate']=='':
-            billing['meta']['StartDate'] = str( line['ChargeStartDate'] )[0:4] + '-' + str( line['ChargeStartDate'] )[8:10] + '-' + str( line['ChargeStartDate'] )[5:7]
-            billing['meta']['EndDate'] = str( line['ChargeEndDate'] )[0:4] + '-' + str( line['ChargeEndDate'] )[8:10] + '-' + str( line['ChargeEndDate'] )[5:7]
+            billing['meta']['StartDate'] = datetime.strptime( str(line['ChargeStartDate']), '%Y-%m-%d %H:%M:%S')
+        if billing['meta']['EndDate']=='':
+            billing['meta']['EndDate'] = datetime.strptime( str(line['ChargeEndDate']), '%Y-%m-%d %H:%M:%S')
 
         # Calculate Billing per Customer
         CustomerId = line['CustomerId']
         SubscriptionId = line['SubscriptionId']
+
         # Do not analyse empty lines
         if not pd.isna( CustomerId ) and not pd.isna( SubscriptionId ):
+
             # Create new array for new Customer
             if not CustomerId in billing['data']:
-                billing['data'][CustomerId]={'CustomerName':'', 'CustomerCost':0, 'PartnerCost':0}
+                billing['data'][CustomerId]={'CustomerName':'', 'CustomerCostFloat':0, 'PartnerCostFloat':0}
             billing['data'][CustomerId]['CustomerName'] = line['CustomerName']
             billing['data'][CustomerId]['CustomerDomainName'] = line['CustomerDomainName']
 
-            billing['data'][CustomerId]['CustomerCost'] = billing['data'][CustomerId]['CustomerCost'] + ( float(line['UnitPrice'].replace(',','.')) * float(line['Quantity'].replace(',','.')) * float(line['PCToBCExchangeRate'].replace(',','.')) )
-            billing['data'][CustomerId]['PartnerCost'] = billing['data'][CustomerId]['PartnerCost'] + ( float(line['EffectiveUnitPrice'].replace(',','.')) * float(line['Quantity'].replace(',','.')) * float(line['PCToBCExchangeRate'].replace(',','.')) )
+            if not isinstance( line['UnitPrice'], float):
+                line['UnitPrice'] = locale.atof(line['UnitPrice'])
+            if not isinstance( line['Quantity'], float):
+                line['Quantity'] = locale.atof(line['Quantity'])
+            if not isinstance( line['PCToBCExchangeRate'], float):
+                line['PCToBCExchangeRate'] = locale.atof(line['PCToBCExchangeRate'])
+            if not isinstance( line['EffectiveUnitPrice'], float):
+                line['EffectiveUnitPrice'] = locale.atof(line['EffectiveUnitPrice'])
+
+            billing['data'][CustomerId]['CustomerCostFloat'] = billing['data'][CustomerId]['CustomerCostFloat'] + line['UnitPrice'] * line['Quantity'] * line['PCToBCExchangeRate']
+            billing['data'][CustomerId]['PartnerCostFloat'] = billing['data'][CustomerId]['PartnerCostFloat'] + line['EffectiveUnitPrice'] * line['Quantity'] * line['PCToBCExchangeRate']
+
+        for customer in billing['data']:
+            billing['data'][customer]['CustomerCost'] = round( billing['data'][customer]['CustomerCostFloat'], 2)
+            billing['data'][customer]['PartnerCost'] = round( billing['data'][customer]['PartnerCostFloat'], 2)
+
     return billing
 
-# Create final report
+# Create TXT report
 def ReportTXT( billing ):
-    report = 'Azure Plan usage for period ' + billing['meta']['StartDate'] + ' - ' + billing['meta']['EndDate'] + '\n'
+    report = 'Azure Plan usage for period ' + str(billing['meta']['StartDate'].strftime('%Y-%m-%d')) + ' - ' + str(billing['meta']['EndDate'].strftime('%Y-%m-%d')) + '\n'
     for CustomerId in billing['data']:
         report += '\n'
         report += 'Customer Name: ' + str(billing['data'][CustomerId]['CustomerName']) + '\n'
@@ -68,21 +82,9 @@ def ReportTXT( billing ):
         report += '               -----------------------------------\n'
         report += 'Customer cost: ' + str( '{:.2f}'.format( billing['data'][CustomerId]['CustomerCost'] )) + ' EUR\n'
         report += ' Partner cost: ' + str( '{:.2f}'.format( billing['data'][CustomerId]['PartnerCost'] )) + ' EUR\n'
-    print("------------------------------------------------------------")
-    print(report)
-    print("------------------------------------------------------------")
+    return report
 
-# Create HTML Report
-def ReportHTML( billing ):
-    report = '<html><head><title>Azure Plan usage for period ' + billing['meta']['StartDate'] + ' - ' + billing['meta']['EndDate'] + '</title></head><body>'
-    report += '<h1>Azure Plan usage for period ' + billing['meta']['StartDate'] + ' - ' + billing['meta']['EndDate'] + '</h1>'
-    for CustomerId in billing['data']:
-        report += '<h2>Customer Name: ' + str(billing['data'][CustomerId]['CustomerName']) + '</h2>'
-        report += '<p>Tenant id: ' + str(CustomerId) + '</p>'
-        report += '<p>Domain name: ' + str(billing['data'][CustomerId]['CustomerDomainName']) + '</p>'
-        report += '<p>Customer cost: ' + str( '{:.2f}'.format( billing['data'][CustomerId]['CustomerCost'] )) + ' EUR</p>'
-        report += '<p>Partner cost: ' + str( '{:.2f}'.format( billing['data'][CustomerId]['PartnerCost'] )) + ' EUR</p>'
-    report += '</body></html>'
-    print("------------------------------------------------------------")
-    print(report)
-    print("------------------------------------------------------------")
+# Create JSON Report
+def ReportJSON( billing ):
+    json_object = json.dumps(billing, indent=4, sort_keys=True, default=str)
+    return json_object

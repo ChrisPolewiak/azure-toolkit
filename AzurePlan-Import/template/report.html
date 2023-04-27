@@ -1,0 +1,43 @@
+{% include 'header.html' %}
+
+    <div class="container">
+        <div class="row">
+            <div class="col">
+
+{% include 'form.html' %}
+
+<!--
+    {{ report|safe }}
+-->
+
+                <h1>Result</h1>
+                <p>Billing period {{ report.meta.StartDate.strftime('%Y-%m-%d') }} - {{ report.meta.EndDate.strftime('%Y-%m-%d') }}</p>
+
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">Customer</th>
+                            <th scope="col">Cost for Customer</th>
+                            <th scope="col">Cost for Partner</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+
+                {% for customerdata in report.data %}
+                
+                        <tr>
+                            <th scope="row">{{ report.data[customerdata].CustomerName }}</th>
+                            <td>{{ report.data[customerdata].CustomerCost|round(2) }} EUR</td>
+                            <td>{{ report.data[customerdata].PartnerCost|round(2) }} EUR</td>
+                        </tr>
+
+                {% endfor %}
+
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+
+{% include 'footer.html' %}
