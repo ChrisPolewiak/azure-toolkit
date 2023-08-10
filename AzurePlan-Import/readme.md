@@ -10,4 +10,4 @@ input file in CSV or Excel format (default: None)
 output format: txt or json (default: txt)
 
 ## Host as an application
-Run app.py in Python Flash environment
+Run app.py in Python Flask environment
