@@ -1,3 +1,8 @@
+# Import, extract and calculate billing in AzurePlan subscriptions from Excel and CSV files
+# 
+# Written By: Chris Polewiak
+# Website:	https://github.com/ChrisPolewiak/azure-toolkit/tree/master/AzurePlan-Import
+
 from flask import *
 import uuid_utils as uuid
 from werkzeug.utils import secure_filename
@@ -11,7 +16,9 @@ app = Flask(__name__, template_folder = os.path.abspath('template'))
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['UPLOAD_FOLDER'] = os.path.abspath('uploads')
 app.config['SECRET_KEY'] = 'yt83t0ghasyg0j'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 128 * 1024 * 1024
+app.config['version'] = '2.02 (2023-05-15)'
+
 
 # For website monitoring
 AzureAppInsights_ConnectionString = 'InstrumentationKey=3712782d-691c-47d4-bef1-52ae3c0f7dc1;IngestionEndpoint=https://northeurope-2.in.applicationinsights.azure.com/;LiveEndpoint=https://northeurope.livediagnostics.monitor.azure.com/'

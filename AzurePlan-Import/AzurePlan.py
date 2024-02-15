@@ -1,15 +1,3 @@
-# Import, extract and calculate billing in AzurePlan subscriptions from Excel and CSV files
-# 
-# Written By: Chris Polewiak
-# Website:	https://github.com/ChrisPolewiak/azure-toolkit/tree/master/AzurePlan-Import
-
-# Change Log
-# V1.00, 2022-07-15 - Initial public version
-# V1.01, 2022-11-21 - Add CSV Support
-# v1.02, 2023-04-12 - Add HTML output and add parser for input arguments
-# v2.00, 2023-04-27 - Remove Excel support, Add HTTP server using Flesk
-# v2.01, 2023-04-27 - Add Azure Application Insights, report each subscription separately
-
 import pandas as pd
 import json
 import re
@@ -51,10 +39,9 @@ def Calculate( report ):
             'customers':{},
         }
     }
+    subs={}
     for line in report:
 
-#        print('\n')
-#        print(line)
         # Set Report Dates
         if billing['meta']['StartDate']=='':
             billing['meta']['StartDate'] = datetime.strptime( str(line['ChargeStartDate']), '%Y-%m-%d %H:%M:%S')
@@ -64,6 +51,8 @@ def Calculate( report ):
         # Calculate Billing per Customer
         CustomerId = line['CustomerId']
         SubscriptionId = line['SubscriptionId']
+
+        subs[SubscriptionId]=1
 
         # Do not analyse empty lines
         if not pd.isna( CustomerId ) and not pd.isna( SubscriptionId ):
@@ -97,7 +86,7 @@ def Calculate( report ):
             billing['data']['customers'][CustomerId]['subscriptions'][SubscriptionId]['PartnerCost']  = billing['data']['customers'][CustomerId]['subscriptions'][SubscriptionId]['PartnerCost'] + PartnerCost
             billing['data']['customers'][CustomerId]['CustomerCost'] = billing['data']['customers'][CustomerId]['CustomerCost'] + CustomerCost
             billing['data']['customers'][CustomerId]['PartnerCost']  = billing['data']['customers'][CustomerId]['PartnerCost'] + PartnerCost
-
+            
 #            print(
 #                    'Customer:', CustomerId, 'Sub:', SubscriptionId, 
 #                    'UnitPrice:', UnitPrice,'\tQty:', Quantity,'\tPCT:', PCToBCExchangeRate, '\tEffective:', EffectiveUnitPrice,
@@ -114,6 +103,9 @@ def Calculate( report ):
 #        billing['data']['customers'][CustomerId]['subscriptions'][SubscriptionId]['PartnerCostSubscription'] = round( billing['data']['customers'][CustomerId]['subscriptions'][SubscriptionId]['PartnerCostFloat'], 2)
 
 #    print(billing['data'][CustomerId]['CustomerCost'],billing['data'][CustomerId]['PartnerCost'])
+
+    print('\n')
+    print(subs)
 
     return billing
 
@@ -146,3 +138,4 @@ def ReportTXT( billing ):
 def ReportJSON( billing ):
     json_object = json.dumps(billing, indent=4, sort_keys=True, default=str)
     return json_object
+
