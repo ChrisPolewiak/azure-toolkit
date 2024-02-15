@@ -2,7 +2,7 @@
 
 ## [2.02] - 2023-04-27
 ### Fixed
-Fix data length in JSON report (Request Entity Too Large)
+Fixed error "Request Entity Too Large"
 
 ## [2.01] - 2023-04-27
 ### Added
