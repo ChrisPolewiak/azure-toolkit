@@ -1,8 +1,10 @@
 # ChangeLog
 
-## [2.02] - 2023-04-27
+## [2.02] - 2023-05-15
 ### Fixed
-Fixed error "Request Entity Too Large"
+- Fixed error "Request Entity Too Large"
+### Updated
+- Update the version of bootstrap to version 5.3.2
 
 ## [2.01] - 2023-04-27
 ### Added
