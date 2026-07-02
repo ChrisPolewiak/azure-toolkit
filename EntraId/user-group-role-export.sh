@@ -1,4 +1,30 @@
 #!/bin/bash
+#
+# entraid-user-and-role-export.sh
+#
+# Description:
+#   Exports Microsoft Entra ID users with their profile data, account creation date,
+#   last sign-in date (interactive and non-interactive merged into the most recent),
+#   assigned Entra directory roles (direct and inherited via Security Groups),
+#   and group memberships (by display name).
+#   Additionally exports all Security Groups with their assigned directory roles.
+#
+#   Output files:
+#     users_export.csv           - user list with roles and groups
+#     security_groups_export.csv - security groups with roles
+#
+#   All timestamps are converted to Europe/Warsaw local time (CET/CEST).
+#
+# Usage:
+#   bash entraid-user-and-role-export.sh
+#
+#   Optional env overrides:
+#     TEST_USER_UPN_PREFIX=<upn_prefix>  - limit export to a single user (testing)
+#     TOP_LIMIT=<n>                      - limit export to first N users (testing)
+#
+# Created by: Chris Polewiak
+# With the assistance of: Claude AI (Anthropic) & GitHub Copilot (VS Code)
+#
 
 GRAPH="https://graph.microsoft.com/v1.0"
 GRAPH_BETA="https://graph.microsoft.com/beta"
@@ -50,13 +76,13 @@ while read role; do
     | jq -r --arg rname "$rname" '.id + ";" + $rname' >> "$USER_ROLE_MAP_FILE"
 done < <(fetch_all_items "$GRAPH/directoryRoles?\$select=id,displayName")
 
-echo "UserId;displayName;FirstName;LastName;UPN;Email;Company;JobTitle;Department;LastInteractiveSignIn;LastNonInteractiveSignIn;Groups;EntraRoles" > users_export.csv
+echo "UserId;displayName;FirstName;LastName;UPN;Email;Company;JobTitle;Department;CreatedAt;LastSignIn;EntraRoles;Groups" > users_export.csv
 echo "GroupId;DisplayName;IsAssignableToRole;Roles" > security_groups_export.csv
 
 if [ -n "$TEST_USER_UPN_PREFIX" ]; then
-  url="$GRAPH_BETA/users?\$filter=startswith(userPrincipalName,'$TEST_USER_UPN_PREFIX')&\$select=id,displayName,givenName,surname,userPrincipalName,mail,companyName,jobTitle,department,signInActivity&\$top=999"
+  url="$GRAPH_BETA/users?\$filter=startswith(userPrincipalName,'$TEST_USER_UPN_PREFIX')&\$select=id,displayName,givenName,surname,userPrincipalName,mail,companyName,jobTitle,department,createdDateTime,signInActivity&\$top=999"
 else
-  url="$GRAPH_BETA/users?\$select=id,displayName,givenName,surname,userPrincipalName,mail,companyName,jobTitle,department,signInActivity&\$top=999"
+  url="$GRAPH_BETA/users?\$select=id,displayName,givenName,surname,userPrincipalName,mail,companyName,jobTitle,department,createdDateTime,signInActivity&\$top=999"
 fi
 
 while [ -n "$url" ]; do
@@ -79,14 +105,16 @@ while [ -n "$url" ]; do
     company=$(echo $user | jq -r '.companyName')
     title=$(echo $user | jq -r '.jobTitle')
     dept=$(echo $user | jq -r '.department')
+    createdAtRaw=$(echo $user | jq -r '.createdDateTime // ""')
+    createdAt=$(to_warsaw_time "$createdAtRaw")
     lastInteractiveSignInRaw=$(echo $user | jq -r '.signInActivity.lastSignInDateTime // ""')
     lastNonInteractiveSignInRaw=$(echo $user | jq -r '.signInActivity.lastNonInteractiveSignInDateTime // ""')
-    lastInteractiveSignIn=$(to_warsaw_time "$lastInteractiveSignInRaw")
-    lastNonInteractiveSignIn=$(to_warsaw_time "$lastNonInteractiveSignInRaw")
+    lastSignInRaw=$(printf '%s\n%s\n' "$lastInteractiveSignInRaw" "$lastNonInteractiveSignInRaw" | grep -v '^$' | sort -r | head -n1)
+    lastSignIn=$(to_warsaw_time "$lastSignInRaw")
 
-    groups=$(fetch_all_items "$GRAPH/users/$uid/transitiveMemberOf/microsoft.graph.group?\$select=id" \
-      | jq -r '.id' \
-      | paste -sd ',' -)
+    groups=$(fetch_all_items "$GRAPH/users/$uid/transitiveMemberOf/microsoft.graph.group?\$select=id,displayName" \
+      | jq -r '.displayName' \
+      | paste -sd '|' -)
 
     directRoles=$(awk -F';' -v uid="$uid" '$1==uid{print $2}' "$USER_ROLE_MAP_FILE" | sort -u | paste -sd ',' -)
     inheritedRoles=""
@@ -99,9 +127,9 @@ while [ -n "$url" ]; do
 
     roles=$(printf "%s\n%s\n" "$directRoles" "$inheritedRoles" | collect_distinct_csv)
 
-    echo "$uid  $displayName  $first  $last  $upn  $email  $company  $title  $dept  $lastInteractiveSignIn  $lastNonInteractiveSignIn  $groups  $roles"
+    echo "$uid  $displayName  $first  $last  $upn  $email  $company  $title  $dept  $createdAt  $lastSignIn  $roles  $groups"
 
-    echo "$uid;$displayName;$first;$last;$upn;$email;$company;$title;$dept;$lastInteractiveSignIn;$lastNonInteractiveSignIn;$groups;$roles" >> users_export.csv
+    echo "$uid;$displayName;$first;$last;$upn;$email;$company;$title;$dept;$createdAt;$lastSignIn;$roles;$groups" >> users_export.csv
 
     processed=$((processed + 1))
 
